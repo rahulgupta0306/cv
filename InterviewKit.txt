@@ -1,0 +1,1178 @@
+Interview Preparation Kit 
+
+---> Abstraction. Abstraction means using simple things to represent complexity.
+---> Encapsulation. This is the practice of keeping fields within a class private, then providing access to them via public methods.
+---> Inheritance. It lets programmers create new classes that share some of the attributes of existing classes
+---> Polymorphism. This Java OOP concept lets programmers use the same word to mean different things in different contexts.
+---> Association. Association represents the relationship between the objects. Here, one object can be associated with one object or many objects
+
+1) Explain Spring Bean Life Cycle
+
+Ans. 
+i) Bean is an object in an application. A bean is created, used, and finally destroyed when its purpose is over.
+ii) The entire spring bean life cycle is supervised by the Spring IoC (Inversion of Control) container. That is why these beans are called spring beans.
+
+Life cycle callback methods
+
+i) InitializingBean and DisposableBean callback interfaces They are called everytime object is created
+ii) *Aware interfaces for specific behavior
+iii) Custom init() and destroy() methods in bean configuration file
+iv) @PostConstruct and @PreDestroy annotations . They are called everytime object is created
+
+Life cycle in diagram
+
+Instantiation -> Populate Properties -> BeanNameAware's setBeanName() ->BeanFactoryAware's setBeanFactory() -> ApplicationContextAware setApplicationContext() ->Pre-Initialization BeanPostProcessors -> 
+Initialization afterPropertiesSet() -> init-method -> Post-Initialization (BeanPostProcessors) -> Bean is ready to use -> 
+
+@PreDestroy() -> DisposableBean's destroy() -> destroy-method() -> The end
+
+2) What is IOC container ?
+
+Ans.
+The IoC container is responsible to instantiate, configure and assemble the objects. 
+There are two types of IoC containers. They are:
+i) BeanFactory
+ii) ApplicationContext
+
+The ApplicationContext interface is built on top of the BeanFactory interface. 
+It adds some extra functionality than BeanFactory such as simple integration with Spring's AOP, message resource handling (for I18N), event propagation, application layer specific context (e.g. WebApplicationContext) for web application. 
+So it is better to use ApplicationContext than BeanFactory.
+
+
+3) Injecting prototype bean into a singleton instance
+
+When you inject prototype bean to singleton bean, prototype bean still behave like a singleton bean.
+
+----------------------------> @Lookup <-------------------------------------
+Spring beans are singletons. The problem arises when we try to wire beans of different scopes. For example, a prototype bean into a singleton. This is known as the scoped bean injection problem.
+
+public class X {
+ 
+    @Autowired
+    Y y;
+ 
+    @Lookup
+    public Y getY() {
+        return y;
+    }
+ 
+    public void setY(Y y) {
+        this.y = y;
+    }
+}
+
+----------------------->Using ObjectFactory<--------------------------
+You can use ObjectFactory to get new object each time getY() method is called.
+Update class A.java as below
+
+You can use method injection to solve this problem.Simply use @Lookup with getY() method, it will return new instance each time.
+
+ @Autowired
+    private ObjectFactory<Y> prototypeBeanObjectFactory;
+ 
+    Y y;
+ 
+    public Y getY() {
+        return prototypeBeanObjectFactory.getObject();
+    }
+ 
+    public void setY(Y y) {
+        this.y = y;
+    }
+
+Spring Boot Annotation Based
+
+@Scope(value=ConfigurableBeanFactory.SCOPE_PROTOTYPE,proxyMode = ScopedProxyMode.TARGET_CLASS)
+
+
+4) Enable Lazy Initialization of Bean in Spring Boot
+
+Ans. Prototype-scoped beans are not initialized on startup, unless something else has a reference to them. 
+By default all the singleton beans are eagerly created and configured by ApplicationContext as part of the initialization process.
+
+5) Propagation and Isolation in Transactional
+
+Ans. 
+@Transactional annotation that can be used for wrapping a method in a transaction. We can use it with interfaces (lowest priority), classes or certain methods (highest priority).
+@Transactional is applied only for public methods and method must be invoked from outside of the bean.
+@Transactional annotation has multiple parameters. I would like to focus on two of them: Isolation and Propagation.
+
+Isolation is one of the main properties of transactions (Atomicity, Consistency, Isolation, Durability). It describes visibility of changes applied by concurrent transactions to each other.
+In Spring it is possible to set one of the 5 isolation level values: DEFAULT, READ_UNCOMMITTED, READ_COMMITED, REPETABLE_READ and SERIALIZABLE.
+
+"Dirty" read - one transaction can read changes of a concurrent transaction, that were not committed yet.
+
+"Non-repeatable" read - one transaction reads the same row twice, but gets different values because between these reads the data was updated by the concurrent transaction.
+
+"Phantom read" - one transaction runs the same query twice, but gets a different set of rows as result, because of the changes applied by another concurrent transaction.
+
+DEFAULT value is used when we want to use default isolation level of our RDBMS. Default value for PostgreSQL, Oracle and SQL server is READ_COMMITTED, for MySQL - REPEATABLE_READ.
+
+with READ_UNCOMMITTED isolation level, we can have all three side effects
+
+READ_COMMITTED isolation level has one change in comparison with READ_UNCOMMITTED - it prevents “dirty” reads.
+
+REPEATABLE_READ prevents “dirty” and non-repeatable reads.
+
+SERIALIZABLE isolation level prevents all mentioned above side effects. It performs all transactions in sequence.
+
+
+Propagation
+
+REQUIRED propagation level uses an existing transaction if there is one. Otherwise creates a new transaction.
+
+REQUIRES_NEW propagation level says to suspend outer transaction (if there is one) and create a new one. Inner transaction may rollback or commit indepedently of outer transaction.
+
+MANDATORY propagation uses an existing transaction if there is one. Otherwise, an exception will be thrown.
+
+SUPPORTS propagation level uses the current transaction if there is one. Otherwise, doesn’t create a new one.
+
+NOT_SUPPORTED suspends current transaction if there is one.
+
+NESTED creates nested transaction when there is an existing transaction already or works like REQUIRED if there is no transaction.
+
+NEVER throws an exception if there is an active transaction.
+
+
+6) Concurrency vs. Parallelism
+
+Ans. Operating system based on priority of tasks, thus, assigns CPU and other computing resources e.g. memory; turn by turn to all tasks and give them chance 
+to complete. To end user, it seems that all tasks are running in parallel. This is called concurrency.
+
+Parallelism does not require two tasks to exist. It literally physically run parts of tasks OR multiple tasks, at the same time using multi-core infrastructure 
+of CPU, by assigning one core to each task or sub-task.
+
+CachedThreadPool and program is running on multi-core CPU then can we say we are running program parallel.
+
+
+7) Can we create an object of an abstract class in Java?
+Ans. No, we can't create an object of an abstract class. But we can create a reference variable of an abstract class. 
+The reference variable is used to refer to the objects of derived classes (subclasses of abstract class). 
+
+8) How to access Abstract class constructor?
+Ans. An abstract class can have constructors like the regular class. And, we can access the constructor of an abstract class from the subclass using 
+the super keyword.
+
+9) Why hashCode and equals are used ?
+
+Ans. They represent the Identity of an Object.
+
+10) Functional Interface
+
+Ans. 
+i) An Interface that contains exactly one abstract method is known as functional interface.
+ii) A functional interface can have methods of object class.
+iii) A functional interface can extends another interface only when it does not have any abstract method.
+
+*** Java Predefined-Functional Interfaces
+
+BiConsumer<T,U>	It represents an operation that accepts two input arguments and returns no result.
+Ex. BiConsumer<String, String> biC = (x,y) -> { System.out.println(x+y);};
+		biC.accept("a","v");
+Consumer<T>	It represents an operation that accepts a single argument and returns no result.
+Ex. Consumer<String> c = (x) -> { System.out.println(x);};
+		c.accept("a");
+Function<T,R>	It represents a function that accepts one argument and returns a result.
+Ex. Function<String,String> f = (x) -> { return x;};
+		f.apply("a");
+
+Predicate<T>	It represents a predicate (boolean-valued function) of one argument.
+Ex. Predicate<Integer> p = (x) -> { return x<18;};
+		System.out.println(p.test(17));
+		
+BiFunction<T,U,R>	It represents a function that accepts two arguments and returns a a result.
+Ex. BiFunction<String, String, Integer> biF = (x, y) -> {
+			return x.length() + y.length();
+		};
+		System.out.println(biF.apply("Rahul", "Gupt"));
+
+BiPredicate<T,U>	It represents a predicate (boolean-valued function) of two arguments.
+Ex. BiPredicate<Double,Double> biP = (x,y) -> {return x==y;};
+		System.out.println(biP.test(10.0,10.0));
+		
+BinaryOperator<T>	It represents an operation upon two operands of the same data type. It returns a result of the same type as the operands.
+Ex.  BinaryOperator<Integer> adder = (n1, n2) -> n1 + n2;
+
+      System.out.println(adder.apply(3, 4));
+	  
+	  BinaryOperator<Integer> bi = BinaryOperator.minBy(Comparator.naturalOrder());
+	  System.out.println(bi.apply(2, 3));
+
+https://www.javatpoint.com/java-8-functional-interfaces
+
+100) Why HashMap key should be immutable in java ?
+
+Ans. Any class can be a candidate for the map key if it follows below rules. 
+	1. Overrides hashcode() and equals() method.
+	2. Key class should be immutable.
+
+I have created the HashMap using Mutable Object as Key. 
+
+	Map<Student, String> mutable = new HashMap<Student, String>();
+	Student s1 = new Student(1, 27, "Rahul");
+	mutable.put(s1, "MrAwesome");
+	System.out.println(mutable.get(s1));
+	s1.setName("Shruti");
+	System.out.println(mutable.get(s1));
+
+It prints output as Awesome and null. 
+
+101) How to Create Immutable Class in Java?
+
+Ans Immutable objects are instances whose state doesn’t change after it has been initialized. For example, String is an immutable class and once instantiated 
+its value never changes.
+
+An immutable class is good for caching purposes because you don’t have to worry about the value changes.
+Another benefit of immutable class is that it is inherently thread-safe, so you don’t have to worry about thread safety in case of multi-threaded environment.
+
+To create an immutable class in Java, you have to do the following steps.
+
+Declare the class as final so it can’t be extended.
+Make all fields private so that direct access is not allowed.
+Don’t provide setter methods for variables.
+Make all mutable fields final so that its value can be assigned only once.
+Initialize all the fields via a constructor performing deep copy. A deep copy means actually creating a new array and copying over the values.
+Perform cloning of objects in the getter methods to return a copy rather than returning the actual object reference.
+
+
+102) Spring boot caching 
+
+Ans. Caching is a mechanism to enhance the performance of a system. It is a temporary memory that lies between the application and the persistent database. 
+Cache memory stores recently used data items in order to reduce the number of database hits as much as possible.
+
+Types of cache
+
+In-memory caching - In-memory caches such as Memcached and Radis are key-value stores between your application and your data storage. Since the data is held 
+in RAM, it is much faster than typical databases where data is stored on disk.
+
+Database caching - One popular in this area is first level cache of Hibernate or any ORM frameworks.
+
+Web server caching 
+
+CDN caching
+
+Spring framework provides cache abstraction api for different cache providers.
+
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-cache</artifactId>
+    <version>2.4.0</version>
+</dependency>
+
+@EnableCaching
+@SpringBootApplication
+
+Spring provides one concurrent hashmap as default cache, but we can override CacheManager to register external cache providers as well easily.
+
+@Cacheable
+It is used on the method level to let spring know that the response of the method are cacheable.
+
+@Cacheable(value="books", key="#isbn")
+public Book findStoryBook(ISBN isbn, boolean checkWarehouse, boolean includeUsed)
+
+@CachePut - we need to manipulate the cacheing manually to put (update) cache before method call.
+
+@CacheEvict - It is used when we need to evict (remove) the cache previously loaded of master data. When CacheEvict annotated methods will be executed,
+it will clear the cache.
+
+ @Cacheable("student")
+    public Student getStudentByID(String id) 
+    {
+        try
+        {
+            System.out.println("Going to sleep for 5 Secs.. to simulate backend call.");
+            Thread.sleep(1000*5);
+        } 
+        catch (InterruptedException e) 
+        {
+            e.printStackTrace();
+        }
+ 
+        return new Student(id,"Sajal" ,"V");
+    }
+
+103) What is Spring AOP ?.
+
+AOP (Aspect-Oriented Programming) is a programming pattern that increases modularity by allowing the separation of the cross-cutting concern. 
+These cross-cutting concerns are different from the main business logic. 
+We can add additional behavior to existing code without modification of the code itself.
+Spring's AOP framework helps us to implement these cross-cutting concerns.
+Using AOP, we define common functionality in one place. We are free to define how and where this functionality is applied without modifying the class to which we are applying the new feature. The cross-cutting concern can now be modularized into special classes, called aspect.
+
+
+
+
+* An Iterator is an object that can be used to loop through collections, like ArrayList and HashSet. We cannot iterate a Map directly using iterators, 
+because Map are not Collection
+
+Iterator<String> it = list.iterator();
+it.next() //prints the first element
+it.remove() //remove an element
+it.hasNext()
+
+**** Fail Fast Iterator ****
+
+Iterator fails as soon as it realizes that the structure of the underlying data structure has been modified since the iterator has begun. 
+Iterating thread realizes the changes in modification count, it throws ConcurrentModificationException. Most collections in package java.util are fail fast by Design.
+
+**** Fail Safe Iterator ****
+
+Fail safe Iterator is "Weekly Consistent" and does not throw any exception if collection is modified structurally during the iteration. 
+Such iterator may work on clone of collection instead of original collection such as CopyOnWriteArrayList, ConcurrentHashMap and java.util.concurrent package. 
+It is more preferred in multi- threaded application.
+
+
+ConcurrentHashMap - Part of the map called Segment (internal data structure) is only getting locked while adding or updating the map.
+ So ConcurrentHashMap allows concurrent threads to read the value without locking at all. This data structure was introduced to improve performance. 
+ For updated in the object, the thread must lock the particular segment in which the thread wants to operate. This type of locking mechanism is known as Segment 
+ locking or bucket locking. Inserting null objects is not possible in ConcurrentHashMap as a key or value.
+
+1) What way the object is created without calling constructor ?
+
+Object.clone() - Copying the content of one object into other. 
+Rule 1 - Class should implement Cloneable interface
+Rule 2 - Override Clone() and return super.clone()
+Rule 3 - Catch the Exception CloneNotSupportedException
+
+
+2) Stereotype annotations in Spring
+
+Ans - @Component, @Repository, @Service and @Controller annotations in place and automatic component scanning enabled, Spring will automatically import 
+the beans into the container and inject to dependencies. These annotations are called Stereotype annotations as well.
+ 
+
+3) @Value in spring
+
+It is used for injecting values into fields in Spring-managed beans.
+
+@Value("string value")
+private String stringValue;
+
+application.properties
+value.from.file=Value got from the file
+priority=high
+listOfValues=A,B,C
+
+@Value("${value.from.file}")
+private String stringValue;
+
+4) Prototype Design Pattern 
+
+The concept is to copy an existing object rather than creating a new instance from scratch, something that may include costly operations.
+The existing object acts as a prototype and contains the state of the object.
+
+5) The SQL EXISTS Operator
+
+The EXISTS operator is used to test for the existence of any record in a sub query.The EXISTS operator returns TRUE if the sub query returns one or more records.
+
+6) The SQL BETWEEN Operator
+
+The BETWEEN operator selects values within a given range. The values can be numbers, text, or dates.
+
+7) JOIN vs UNION
+
+JOIN	
+JOIN combines data from many tables based on a matched condition between them.
+It combines data into new columns.
+Number of columns selected from each table may not be same.
+Data types of corresponding columns selected from each table can be different.
+It may not return distinct columns.	
+
+SELECT Boys.Name, Boys.Age, Girls.Address,
+FROM Boys 
+INNER JOIN Girls 
+ON Boys.Rollno = Girls.Rollno; 
+
+UNION	
+SQL combines the result-set of two or more SELECT statements.
+It combines data into new rows
+Number of columns selected from each table should be same.
+Data types of corresponding columns selected from each table should be same.
+It returns distinct rows.
+
+SELECT Name 
+FROM Boys 
+WHERE Rollno < 16 
+UNION
+SELECT Name 
+FROM Girls 
+WHERE Rollno > 9 
+
+8) Annotation Type JsonIgnoreProperties
+
+Annotation that can be used to either suppress serialization of properties (during serialization), or ignore processing of JSON properties read 
+(during deserialization).
+
+Example:
+
+ // to prevent specified fields from being serialized or deserialized
+ // (i.e. not include in JSON output; or being set even if they were included)
+ @JsonIgnoreProperties({ "internalId", "secretKey" })
+ // To ignore any unknown properties in JSON input without exception:
+ @JsonIgnoreProperties(ignoreUnknown=true)
+ 
+9) Front Controller
+
+In Spring MVC applications, the RequestDispatcher (Front Controller Below) servlet is responsible for routing incoming HTTP requests to handler methods 
+of controllers.
+
+10) Annotation Retention Policy.
+
+The first main distinction between kinds of annotation is whether they're used at compile time and then discarded (like @Override) or placed in the 
+compiled class file and available at runtime (like Spring's @Component). This is determined by the @Retention policy of the annotation. 
+
+11) Hibernate Caching
+
+*** First level cache *** = Session ( it represents a database connection) (we can perform crud operation using session object) (it is not thread safe)
+*** Second level cache *** = SessionFactory (it represents a single database) (it is a thread safe object) (Builds only once at the start of our applications)
+ Across sessions in application
+
+SessionFactory factory = new Configuration().configure.buildSessionFactory();
+Configuration reads the configuration file internally.
+
+Session session = factory.openSession();
+
+*** EntityManager is used to access database in  a particular unit of work. This interface is similar to the Session in Hibernate.
+*** EntityManagerFactory *** is used to access several data stores in application. This is similar to Session Factory in Hibernate 
+
+12) Save and Persist and merge and update in Hibernate
+
+13) Fetch type in Hibernate
+
+fetch = FetchType.LAZY
+fetch = FetchType.EAGER
+
+Lazy Loading − Associated data loads only when we explicitly call getter or size method.
+
+Use Lazy Loading when you are using one-to-many collections.
+Use Lazy Loading when you are sure that you are not using related entities. 
+Egare Loading − Data loading happens at the time of their parent is fetched.
+
+ Use Eager Loading when the relations are not too much. Thus, Eager Loading is a good practice to reduce further queries on the Server.
+Use Eager Loading when you are sure that you will be using related entities with the main entity everywhere.
+
+14) Dialect in hibernate
+
+The dialect specifies the type of database used in hibernate so that it generates appropriate type of SQL statement.
+
+15) ClassLoader in Java
+
+The Java ClassLoader is a part of the Java Runtime Environment that dynamically loads Java classes into the Java Virtual Machine. The Java run time system 
+does not need to know about files and file systems because of class loaders.
+
+16) JWT token containers HEADER-PAYLOAD-VERIFYSIGNATURE
+
+17) You can't wait() on an object unless the current thread owns that object's monitor. To do that, you must synchronize on it
+
+18) Interrupting a Thread:
+If any thread is in sleeping or waiting state (i.e. sleep() or wait() is invoked), calling the interrupt() method on the thread, breaks out the sleeping or 
+waiting state throwing InterruptedException.
+
+19) CountDownLatch
+
+We can think of this like a dish at a restaurant that is being prepared. No matter which cook prepares however many of the n items, the waiter must wait until 
+all the items are on the plate. If a plate takes n items, any cook will count down on the latch for each item she puts on the plate.
+
+20) CyclicBarrier
+
+We can think of this like a group of friends. Every time they plan to eat at a restaurant they decide a common point where they can meet. They wait for each 
+other there, and only when everyone arrives can they go to the restaurant to eat together.
+
+21) Stream.reduce()
+
+Many times, we need to perform operations where a stream reduces to single resultant value, for example, maximum, minimum, sum, product, etc. Reducing is the 
+repeated process of combining all elements.
+
+reduce operation applies a binary operator to each element in the stream where the first argument to the operator is the return value of the previous 
+application and second argument is the current stream element.
+
+List<Integer> words = Arrays.asList(1,2,3,4,5,6);
+Integer adding = words.stream().reduce(0,(word1, word2) -> word1*word2);
+O/P - 0
+Integer adding = words.stream().reduce(1,(word1, word2) -> word1*word2);
+O/P - 720
+Integer adding = words.stream().reduce(0,(word1, word2) -> word1+word2);
+O/P - 21
+
+
+22) ForkJoinPool 
+
+The ForkJoinPool was added to Java in Java 7. The ForkJoinPool is similar to the Java ExecutorService but with one difference. The ForkJoinPool makes it 
+easy for tasks to split their work up into smaller tasks which are then submitted to the ForkJoinPool too. Tasks can keep splitting their work into smaller 
+subtasks for as long as it makes to split up the task. It may sound a bit abstract, so in this fork and join tutorial I will explain how the ForkJoinPool works,
+ and how splitting tasks up work.
+
+
+23) Hibernate Entity Life Cycle State
+
+Transient(new Entity is created) ---Save(HB)/Persist(JPA)--->  Managed(Entity is attached to current persistent context, stored in first level cache) -- flush() ->DB
+
+Detached(no longer managed by persistent context) --> Merge/Update --> Managed ---> detach(entity),evict(entity),clear(),close() -----> Detached
+
+save() - returns primary key immediately
+
+24) JPA implementation - Hibernate,EclipseLink,OpenJPA
+
+25) equals and hashcode
+
+We use the equals() method to compare objects in Java. In order to determine if two objects are the same, equals() compares the values of the objects’ attributes
+
+We use the hashcode() method to optimize performance when comparing objects. Executing  hashcode() returns a unique ID for each object in your program, which makes the task of comparing the whole state of the object much easier.
+
+If an object’s hashcode is not the same as another object’s hashcode, there is no reason to execute the equals() method: you just know the two objects are not the same. On the other hand, if the hashcode is the same, then you must execute the equals() method to determine whether the values and fields are the same.
+
+
+26) Using equals() and hashcode() with collections
+The Set interface is responsible for ensuring no duplicate elements will be inserted in a Set subclass. The following are some of the classes that implement the Set interface:
+
+HashSet
+TreeSet
+LinkedHashSet
+CopyOnWriteArraySet
+Only unique elements may be inserted into a Set, so if you want to add an element to the HashSet class (for example), you must first use the equals() and hashcode() methods to verify that the element is unique. If the equals() and hashcode()methods weren’t overridden in this case, you would risk inserting duplicate elements in the code.
+
+
+
+
+28) Different ways of doing overloading methods
+
+Method overloading can be done by changing: 
+
+The number of parameters in two methods.
+The data types of the parameters of methods.
+The Order of the parameters of methods.
+
+
+29) Life Cycle of a Servlet 
+
+The web container maintains the life cycle of a servlet instance. Let's see the life cycle of the servlet:
+
+Servlet class is loaded.
+Servlet instance is created.
+init method is invoked.
+service method is invoked.
+destroy method is invoked.
+
+30) What is static Block in Java?
+
+The static block of  statement inside a Java class that will be executed when a class first loaded in to the JVM. A static block helps to initialize the static data members, just like the constructor help to initialzie the instance members.
+
+
+31) Java String to Date
+
+DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss z");
+LocalDateTime dateTime = LocalDateTime.parse("string",formatter);
+LocalDateTime dateTime = LocalDateTime.parse("2018-05-05T11:50:55");
+
+32) Microservice Advantage
+
+** Low Coupling
+** Business Agility 
+** Cloud Ready Application
+** Reusability
+
+33) Circuit Breaker in Cloud
+
+The circuit breaker pattern allows you to build a fault tolerance and resilient system that can survive gracefully when key services are either down or have high latency. The circuit breaker has 3 distinct states Closed,Open and Half Open. 
+
+Ex - Hystrix, Resilience4j
+
+34) Add Local Jar as to Maven Project
+
+Install manually the jar into a local maven
+
+mvn install:install-file -Dfile=app.jar -DgroupId=  DartifactId=  -Dversion
+add directly dependency as system scope
+
+<scope>system</scope>
+<systemPath>${basedir}</systemPath>
+
+35) Criteria in Hibernate
+
+The API (Application Programming Interface) of Hibernate Criteria provides an elegant way of building dynamic query on the persistence database.
+
+The hibernate criteria API is very Simplified API for fetching data from Criterion objects. The criteria API is an alternative of HQL (Hibernate Query Language) queries. It is more powerful and flexible for writing tricky criteria functions and dynamic queries
+
+
+// HIBERNATE
+Criteria criteria = session.createCriteria(Student.class);
+
+Criteria criteria = session.createCriteria(Student.class);
+
+criteria.add(Restrictions.eq("studentName", "Dinesh Rajput"));
+
+criteria.add(Restrictions.le("rollNumber", 1));
+
+//JPA
+
+EntityManager builder;
+ CriteriaQuery<Address> cq = builder.createQuery(Address.class);
+    Root<Student> student = cq.from(Student.class);
+    Path<Address> addressPath = student.get("addresses");
+    cq.select(addressPath);
+    cq.where(builder.equal(student.get("id"), 10003L));
+    List<Address> resultList = em.createQuery(cq).getResultList();
+
+https://www.initgrep.com/posts/java/jpa/select-values-in-criteria-queries
+
+
+
+36) What is the default format mask for dates in PL/SQL ?
+
+The standard date format for input and output is DD-MON-YY.
+
+37) How to Add Custom Class Objects to the TreeSet in Java?
+TreeSet is an implementation of the SortedSet interface in java that uses a red-black tree for storage. By default, It maintains an ascending order. 
+It contains unique elements only. It doesn’t allow null elements. Access and retrieval times are quite fast. To add the user-defined object into TreeSet, 
+we need to implement a Comparable interface. An element that we want to add in TreeSet must be a comparable type. 
+If we don’t implement the Comparable interface then it will throw ClassCastException. 
+
+38)Package java.util.concurrent.atomic Description.
+
+A small toolkit of classes that support lock-free thread-safe programming on single variables.
+ These algorithms exploit low-level atomic machine instructions such as compare-and-swap (CAS), to ensure data integrity
+ 
+ The most commonly used atomic variable classes in Java are AtomicInteger, AtomicLong, AtomicBoolean, and AtomicReference. 
+
+39) Can we have constructor in abstract class ?
+
+Yes Abstract class can have constructor. Though we cannot create an object of an abstract class, when we create object of subclass concrete class the constructor of Abstract class is invoked automatically.
+
+
+40) Executor service(Interface)
+
+Creates a thread pool that reuses a fixed number of threadsoperating off a shared unbounded queue. At any point, at most nThreads threads will be active processing tasks.If additional tasks are submitted when all threads are active,they will wait in the queue until a thread is available.If any thread terminates due to a failure during executionprior to shutdown, a new one will take its place if needed toexecute subsequent tasks. The threads in the pool will existuntil it is explicitly shutdown.Parameters:nThreads the number of threads in the pool
+
+Deloitte Consultancy 
+Deloiite Service
+
+
+41) LIMIT - LIMIT 2,1; (third row) LIMIT [offset,] row_count;
+
+The offset specifies the offset of the first row to return. The offset of the first row is 0, not 1.
+The row_count specifies the maximum number of rows to return.
+
+MySQL supports the LIMIT clause to fetch limited number of records while Oracle uses the ROWNUM command to fetch a limited number of records.
+TOP - The SQL TOP clause is used to fetch a TOP N number or X percent records from a table.
+
+
+42) How to Change HIbernate to EclipseLink 
+
+JPA is an interface and Hibernate is the implementation. By default Spring uses Hibernate as the default JPA vendor. If you prefer, you can use any other reference implementation e.g. EclipseLink for the Java Persistence in your Spring project.
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-data-jpa</artifactId>
+    <exclusions>
+        <exclusion>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-entitymanager</artifactId>
+        </exclusion>
+        <exclusion>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-core</artifactId>
+        </exclusion>
+    </exclusions>
+</dependency>
+<dependency>
+    <groupId>org.eclipse.persistence</groupId>
+    <artifactId>org.eclipse.persistence.jpa</artifactId>
+    <version>2.7.0</version>
+</dependency>
+@Configuration 
+public class EclipseLinkJpaConfiguration extends JpaBaseConfiguration { 
+
+    @Override 
+    protected AbstractJpaVendorAdapter createJpaVendorAdapter() { 
+        return new EclipseLinkJpaVendorAdapter(); 
+    }
+    
+    //...
+}
+
+code coverage in sonarqube
+ci cd in jenkins
+actuator endpoints 
+testing mockito
+
+https://developer.okta.com/blog/2019/03/28/test-java-spring-boot-junit5
+
+
+sql vs nosql
+C3P0
+C3P0 is one of the most used connection pool libraries in the world of java. Unfortunately, spring-boot does not support auto-configure for it.
+ Therefore, we have to configure it by writing lines of code.
+In order to make C3P0 available in the application, we must include the dependency on pom.xml. Of course.
+disable auto configuration in java spring boot
+
+43) SonarQube - static analysis code tool
+
+SonarQube is an open-source and standalone service that provides an overview of the overall health of our source code by measuring code quality and code coverage. 
+SonarQube helps us to know whether our code is production-ready or not.
+
+44) Code Coverage
+
+Code coverage, also called test coverage, is a measure of how much of the application’s code has been executed in testing. Essentially, 
+it's a metric that many teams use to check the quality of their tests, as it represents the percentage of the production code that has been tested and executed.
+
+This gives development teams reassurance that their programs have been broadly tested for bugs and should be relatively error-free.
+
+45) Volatile Keyword
+
+The Java volatile keyword is used to mark a Java variable as "being stored in main memory". More precisely that means, 
+that every read of a volatile variable will be read from the computer's main memory, and not from the CPU cache, and that every write to a
+ volatile variable will be written to main memory, and not just to the CPU cache. The Java volatile keyword guarantees visibility of changes to variables 
+ across threads. The problem with threads not seeing the latest value of a variable because it has not yet been written back to main memory by another thread, 
+ is called a "visibility" problem.
+
+46) @PersistenceContext and @Transactional
+
+@PersistenceContext allows you to specify which persistence unit you want to use. Your project might have multiple data sources connected to different DBs 
+and @PersistenceContext allows you to say which one you want to operate on. @PersistenceContext takes care to create a unique EntityManager for every thread. 
+In a production application you can have multiple clients calling your application in the same time. For each call, the application creates a thread. 
+Each thread should use its own EntityManager. Imagine what would happen if they share the same EntityManager: different users would access the same entities.
+
+@Transactional
+@Repository
+public class BookDetailsRepoImpl implements BookDetailsRepo {
+
+ @PersistenceContext
+ private EntityManager entityManager;
+
+ public List<BookDetails> listBookDetails() {
+ return (List<BookDetails>) entityManager.createQuery("FROM BookDetails").getResultList();
+ }
+
+@Service
+@Transactional(isolation = Isolation.SERIALIZABLE,propagation = Propagation.REQUIRED)
+public class FooService {
+    //...
+}
+
+REQUIRED is the default propagation. Spring checks if there is an active transaction, and if nothing exists, it creates a new one. Otherwise, 
+the business logic appends to the currently active transaction:
+
+47) Circular dependency between two object
+
+If Object A and B are dependent each other i.e A is depends ob B and vice-versa. Spring throws ObjectCurrentlyInCreationException while creating objects of A 
+and B bcz A object cannot be created until B is created and vice-versa. So spring can resolve circular dependencies through setter-injection.
+ Objects constructed before setter methods invoked. It can happen in Spring when using constructor injection; if you use other types of injections you should
+ not find this problem since the dependencies will be injected when they are needed and not on the context loading.
+
+48) Git merge conflict 
+
+Let’s assume there are two developers: Developer A and Developer B. Both of them pull the same code file from the remote repository and try to make various 
+amendments in that file. After making the changes, Developer A pushes the file back to the remote repository from his local repository. Now, when Developer B 
+tries to push that file after making the changes from his end, he is unable to do so, as the file has already been changed in the remote repository.
+
+To prevent such conflicts, developers work in separate isolated branches. The Git merge command combines separate branches and resolves any conflicting edits.
+
+49) Actuator Endpoints
+
+You can enable or disable an actuator endpoint by setting the property management.endpoint.<id>.enabled to true or false (where id is the identifier for the 
+endpoint).
+
+Exposing Actuator endpoints over HTTP
+management.endpoints.web.exposure.include=health,info  
+management.endpoints.web.exposure.exclude=
+
+
+50) Circular Dependency 
+
+@Lazy
+
+
+51) How to create Singleton design pattern? How to Prevent Singleton from Cloning ?
+
+To create the singleton class, we need to have static member of class, private constructor and static factory method.
+
+Static member: It gets memory only once because of static, it contains the instance of the Singleton class.
+Private constructor: It will prevent to instantiate the Singleton class from outside the class.
+Static factory method: This provides the global point of access to the Singleton object and returns the instance to the caller.
+
+@Override
+protected Object clone() throws CloneNotSupportedException 
+{
+	throw new CloneNotSupportedException();
+}
+
+@Override
+protected Object clone() throws CloneNotSupportedException 
+{
+	return instance;
+}
+
+@BeforeEach and @BeforeAll are the JUnit 5 equivalents of @Before and @BeforeClass. These annotations were renamed with clearer names to avoid confusion.
+
+
+The main advantage of using the Spring Framework is the ability to inject your dependencies, which makes it much easier to swap out implementations for 
+various purposes, but not least of all for unit testing. Spring Boot makes it even easier by allowing you to do much of the dependency injection with 
+annotations instead of having to bother with a complicated applicationContext.xml file!
+
+52) How to create Immutable class in Java?
+
+Immutable class means that once an object is created, we cannot change its content.
+
+Following are the requirements: 
+ 
+
+The class must be declared as final (So that child classes can’t be created)
+Data members in the class must be declared as private (So that direct access is not allowed)
+Data members in the class must be declared as final (So that we can’t change the value of it after object creation)
+A parameterized constructor should initialize all the fields performing a deep copy (So that data members can’t be modified with object reference)
+Deep Copy of objects should be performed in the getter methods (To return a copy rather than returning the actual object reference)
+No setters (To not have the option to change the value of the instance variable)
+
+
+Immutable classes make concurrent programming easier. Immutable classes make sure that values are not changed in the middle of an operation without using 
+synchronized blocks. By avoiding synchronization blocks, you avoid deadlocks. And since you are always working with an unchangeable consistent state, 
+you avoid race conditions. In the following article, we will look at how to use immutable classes for concurrent programming in Java.
+
+53) Spring uses Reflection to create object
+
+
+54) Lazy Initialization
+By default in Spring, all the defined beans, and their dependencies, are created when the application context is created.
+
+In contrast, when we configure a bean with lazy initialization, the bean will only be created, and its dependencies injected, once they're needed. 
+
+Setting the property value to true means that all the beans in the application will use lazy initialization.
+
+Let's configure the property in our application.yml configuration file:
+
+spring:
+  main:
+    lazy-initialization: true
+Or, if it's the case, in our application.properties file:
+
+spring.main.lazy-initialization=true
+
+55) Prevent Spring from Overriding existing bean
+
+spring.main.allow-bean-definition-overriding: false
+
+
+56) What is Transitive Dependency
+
+When an indirect relationship causes functional dependency it is called Transitive Dependency.
+
+If  P -> Q and Q -> R is true, then P-> R is a transitive dependency.
+
+To achieve 3NF, eliminate the Transitive Dependency.
+
+A relation is in third normal form if it holds atleast one of the following conditions for every non-trivial function dependency X → Y.
+
+X is a super key.
+Y is a prime attribute, i.e., each element of Y is part of some candidate key.
+
+EMPLOYEE_DETAIL table:
+
+EMP_ID	EMP_NAME	EMP_ZIP	EMP_STATE	EMP_CITY
+222	Harry	201010	UP	Noida
+333	Stephan	02228	US	Boston
+444	Lan	60007	US	Chicago
+555	Katharine	06389	UK	Norwich
+666	John	462007	MP	Bhopal
+
+Super key in the table above:
+
+{EMP_ID}, {EMP_ID, EMP_NAME}, {EMP_ID, EMP_NAME, EMP_ZIP}....so on  
+Candidate key: {EMP_ID}
+
+Non-prime attributes: In the given table, all attributes except EMP_ID are non-prime.
+
+ EMP_STATE & EMP_CITY dependent on EMP_ZIP and EMP_ZIP dependent on EMP_ID. The non-prime attributes (EMP_STATE, EMP_CITY) transitively dependent on super 
+ key(EMP_ID). It violates the rule of third normal form.
+ 
+
+Example 1 
+
+In relation STUDENT given in Table 4
+
+FD set:
+{STUD_NO -> STUD_NAME, STUD_NO -> STUD_STATE, STUD_STATE -> STUD_COUNTRY, STUD_NO -> STUD_AGE}
+
+Candidate Key:
+{STUD_NO}
+
+For this relation in table 4, STUD_NO -> STUD_STATE and STUD_STATE -> STUD_COUNTRY are true. So STUD_COUNTRY is transitively dependent on STUD_NO. 
+It violates the third normal form. To convert it in third normal form, we will decompose the relation STUDENT (STUD_NO, STUD_NAME, STUD_PHONE, STUD_STATE, 
+STUD_COUNTRY_STUD_AGE) as:
+
+STUDENT (STUD_NO, STUD_NAME, STUD_PHONE, STUD_STATE, STUD_AGE) 
+STATE_COUNTRY (STATE, COUNTRY) 
+
+57) Observables	 i) Emit multiple values over a period of time. ii) Are lazy: they’re not executed until we subscribe to them using the subscribe() method.
+iii) Have subscriptions that are cancellable using the unsubscribe() method, which stops the listener from receiving further values.
+iv)Provide the map for forEach, filter, reduce, retry, and retryWhen operators. v) Deliver errors to the subscribers.
+
+const obs = new Observable((observer) => { observer.next(10); });
+Obs.pipe(map(value => {return value * 2}));
+const sub = obs.subscribe((value) => { console.log(value)});
+
+vs
+ 
+Promises
+i) Emit a single value at a time. ii) Are not lazy: execute immediately after creation. iii) Are not cancellable. iv) Don’t provide any operations.
+v) Push errors to the child promises.
+
+const promise = new Promise(() => { resolve(10); });
+promise.then((value) => value * 2);
+promise.then((value) => {console.log(value) });
+
+
+58) @DependsOn
+
+Spring guarantees that the defined beans will be initialized before attempting an initialization of the current bean.
+
+Let's say we have a FileProcessor which depends on a FileReader and FileWriter. In this case, FileReader and FileWriter should be initialized before the 
+FileProcessor.
+
+@Configuration
+@ComponentScan("com.baeldung.dependson")
+public class Config {
+ 
+    @Bean
+    @DependsOn({"fileReader","fileWriter"})
+    public FileProcessor fileProcessor(){
+        return new FileProcessor();
+    }
+    
+    @Bean("fileReader")
+    public FileReader fileReader() {
+        return new FileReader();
+    }
+    
+    @Bean("fileWriter")
+    public FileWriter fileWriter() {
+        return new FileWriter();
+    }   
+}
+
+59) Can we use throwable in Catch ,
+
+Ans - Yes
+
+Throwable is the superclass of all exceptions and errors. You can use it in a catch clause, but you should never do it!
+
+If you use Throwable in a catch clause, it will not only catch all exceptions; it will also catch all errors.
+
+Errors are thrown by the JVM to indicate serious problems that are not intended to be handled by an application.
+
+Typical examples for that are the OutOfMemoryError or the StackOverflowError. Both are caused by situations that are outside of the control of the application 
+and can’t be handled.
+
+So, better don’t catch a Throwable unless you’re absolutely sure that you’re in an exceptional situation in which you’re able or required to handle an error.
+
+	File file = new File("./tmp.txt");
+	try (FileInputStream inputStream = new FileInputStream(file);) {
+		// use the inputStream to read a file
+		
+	} catch (Throwable e) {
+	System.out.println(e);
+	} 
+	}
+
+
+60) How two components talk to each other in Angular 8
+
+	
+Subject And Behavior Subject In Angular 8
+
+61) Make ArrayList Read only
+
+Pass the ArrayList into Collections.unmodifiableList(). It returns an unmodifiable view of the specified list. Only use this returned List, and never the 
+original ArrayList.
+
+Collections unmodifiableList()
+
+62) Limitations of Mockito 
+
+Some limitations of the mockito are,
+
+It cannot mock constructors or static methods.
+It requires Java version 6 plus to run.
+It also cannot mock equals(), hashCode() methods.
+VM mocking is only possible on VMs that are supported by Objenesis.
+
+63) Immutable List in Java  - unmodifiableList()
+
+64) What happens to the thread when garbage collection kicks off?
+
+Ans. thread is paused while garbage collection runs
+
+65) Can we override final method in java?
+
+Ans. A method declared with the final keyword, then it is known as the final method. The final method can’t be overridden. A final method declared in the 
+Parent class cannot be overridden by a child class. If we try to override the final method,  the compiler will throw an exception at compile time.
+
+66) Content Negotiation for returning XML or JSON
+
+Ans. // Content Negotiation
+	@GetMapping(value = "/employees/{id}", produces = { "application/json", "application/xml" })
+	Accept Header
+	<dependency>
+			<groupId>com.fasterxml.jackson.dataformat</groupId>
+			<artifactId>jackson-dataformat-xml</artifactId>
+	</dependency>
+
+Check for Balanced Brackets
+
+Example: 
+
+Input: exp = “[()]{}{[()()]()}” 
+Output: Balanced
+
+Input: exp = “[(])” 
+Output: Not Balanced 
+
+The stack is a linear data structure that is used to store the collection of objects. It is based on Last-In-First-Out (LIFO). Java collection framework 
+provides many interfaces and classes to store the collection of objects. One of them is the Stack class that provides different operations such as push, pop, 
+search, etc.
+
+67) Add Swagger 
+
+Maven 
+
+<dependency>
+	<groupId>io.springfox</groupId>
+	<artifactId>springfox-swagger2</artifactId>
+	<version>2.9.2</version>
+</dependency>
+<dependency>
+	<groupId>io.springfox</groupId>
+	<artifactId>springfox-swagger-ui</artifactId>
+	<version>2.9.2</version>
+</dependency>
+
+Class
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+import springfox.documentation.builders.ApiInfoBuilder;
+import springfox.documentation.builders.PathSelectors;
+import springfox.documentation.builders.RequestHandlerSelectors;
+import springfox.documentation.service.ApiInfo;
+import springfox.documentation.spi.DocumentationType;
+import springfox.documentation.spring.web.plugins.Docket;
+import springfox.documentation.swagger2.annotations.EnableSwagger2;
+
+@Configuration
+@EnableSwagger2
+public class SwaggerConfig {
+
+	@Bean
+	public Docket api() {
+		return new Docket(DocumentationType.SWAGGER_2).select()
+				.apis(RequestHandlerSelectors.basePackage("com.virtussa")).paths(PathSelectors.any()).build()
+				.apiInfo(metaData());
+	}
+
+	private ApiInfo metaData() {
+		return new ApiInfoBuilder().title("My First Swagger").description("Test for Interview").version("1.0.0")
+				.license("Apche 2.0").licenseUrl("www.mrawesome.com").build();
+	}
+
+}
+
+
+69) Skip tests in Maven
+
+mvn clean install -DskipTests
+
+
+70) Implement Runnable vs Extend Thread in Java
+
+In the first approach, Our class always extends Thread class. There is no chance of extending any other class. Hence we are missing Inheritance benefits. In the second approach, while implementing Runnable interface we can extends any other class. Hence we are able to use the benefits of Inheritance.
+Because of the above reasons, implementing Runnable interface approach is recommended than extending Thread class.
+
+71) Difference between constructor and setter injection
+
+Partial dependency: can be injected using setter injection but it is not possible by constructor. Suppose there are 3 properties in a class, having 3 arg constructor and setters methods. In such case, if you want to pass information for only one property, it is possible by setter method only.
+
+Overriding: Setter injection overrides the constructor injection. If we use both constructor and setter injection, IOC container will use the setter injection.
+
+Changes: We can easily change the value by setter injection. It doesn't create a new bean instance always like constructor. So setter injection is flexible than constructor injection.
+
+Mandatory: constructor injection ensures all mandatory properties have been satisfied
+
+72) Difference between Interceptor and Filter in Spring MVC
+
+Ans. Filter sits between client and dispatcher servlet 
+Interceptor sits between dispatcher servlet and controllers
+
+73) Having vs Where Clause in SQL
+
+Ans. The difference between the having and where clause in SQL is that the where clause cannot be used with aggregates, but the having clause can.
+
+The where clause works on row’s data, not on aggregated data.  Let us consider below table ‘Marks’.
+
+SELECT Student, SUM(score) AS total FROM Marks GROUP BY Student
+HAVING total > 70
+
+
+74) Runtime.version().feature() - Prints java version
+
+
+CoderPad Genpact Interview
+    Map<Integer,Integer> indexTraversal = new Hashtable<>();
+    indexTraversal.put(startIndex,1);
+    int traverse_index = arr[startIndex];
+    int count = 1;
+    while(traverse_index!=startIndex)
+    { 
+    if(traverse_index>=arr.length)
+    {
+      return -1;
+    }
+    if(indexTraversal.containsKey(traverse_index))
+    {
+      return -1;
+    }
+    else
+    {
+    indexTraversal.put(traverse_index,1);
+    count++;
+    }
+    traverse_index=arr[traverse_index];
+    }
+    
+    System.out.println(indexTraversal);
+	
+	
+	
+	 public static boolean isPowerOf10(int x)
+  {
+  // todo: implement here
+    
+  int pow = 10;
+  while(pow<x)
+  {
+    pow = pow*10;
+  }
+  return pow==x;
+  }
+  
+75) C vs Java
+76) Daemon vs User thread
+77) Process vs Thread
+78) Race Condition
+79) Kanban
+80) Binary Search
+81) Quick Sorted
+82) Database Normalization
+83) Singleton
+84) Here are some of the top challenges that most organizations face in their microservices journey.
+85) CountDownLatch Example
+86) HashSet to store Object
+87) Object vs Class
+88) Union vs UnionAll
+89) Cyclomatic Complexity 
+90) Inida's best place to work with 
+91) ObjectMapper in Jackson Library - Provides functionality for reading and writing JSON, either to and from basic POJOs
+92) Error vs Exception
+
+MH/BAN/48475/1120895
+
+
+The network location of a service instance is registered with the service registry when it starts up. It is removed from the service registry when the instance terminates. The service instance’s registration is typically refreshed periodically using a heartbeat mechanism.
